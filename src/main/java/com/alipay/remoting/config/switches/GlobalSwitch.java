@@ -49,12 +49,14 @@ public class GlobalSwitch implements Switch {
      * All these settings can be overwrite by user api settings.
      */
     public GlobalSwitch() {
+        // 是否重连开关，默认false,是一个客户端设置参数
         if (ConfigManager.conn_reconnect_switch()) {
             userSettings.set(CONN_RECONNECT_SWITCH);
         } else {
             userSettings.clear(CONN_RECONNECT_SWITCH);
         }
 
+        // 是否连接监控，默认false，是服务端设置参数
         if (ConfigManager.conn_monitor_switch()) {
             userSettings.set(CONN_MONITOR_SWITCH);
         } else {

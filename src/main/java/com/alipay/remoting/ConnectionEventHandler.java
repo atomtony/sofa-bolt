@@ -46,14 +46,17 @@ import io.netty.util.Attribute;
 public class ConnectionEventHandler extends ChannelDuplexHandler {
     private static final Logger     logger = BoltLoggerFactory.getLogger("ConnectionEvent");
 
+    // 服务端，链接管理
     private ConnectionManager       connectionManager;
 
     private ConnectionEventListener eventListener;
 
     private ConnectionEventExecutor eventExecutor;
 
+    // 客户号，重连管理
     private Reconnector             reconnectManager;
 
+    // 全局开关参数
     private GlobalSwitch            globalSwitch;
 
     public ConnectionEventHandler() {
@@ -140,9 +143,11 @@ public class ConnectionEventHandler extends ChannelDuplexHandler {
         Attribute attr = ctx.channel().attr(Connection.CONNECTION);
         if (null != attr) {
             // add reconnect task
+            // 判断是佛需要重启
             if (this.globalSwitch != null
                 && this.globalSwitch.isOn(GlobalSwitch.CONN_RECONNECT_SWITCH)) {
                 Connection conn = (Connection) attr.get();
+                // 客户端，重新链接
                 if (reconnectManager != null) {
                     reconnectManager.reconnect(conn.getUrl());
                 }

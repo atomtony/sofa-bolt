@@ -71,13 +71,16 @@ public class RpcCommandEncoderV2 implements CommandEncoder {
                  */
                 int index = out.writerIndex();
                 RpcCommand cmd = (RpcCommand) msg;
+                // 写入协议码
                 out.writeByte(RpcProtocolV2.PROTOCOL_CODE);
                 Attribute<Byte> version = ctx.channel().attr(Connection.VERSION);
                 byte ver = RpcProtocolV2.PROTOCOL_VERSION_1;
                 if (version != null && version.get() != null) {
                     ver = version.get();
                 }
+                // 写入协议版本号
                 out.writeByte(ver);
+                // 请求类型
                 out.writeByte(cmd.getType());
                 out.writeShort(((RpcCommand) msg).getCmdCode().value());
                 out.writeByte(cmd.getVersion());

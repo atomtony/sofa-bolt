@@ -90,9 +90,11 @@ public abstract class AbstractRemotingServer extends AbstractLifeCycle implement
         super.startup();
 
         try {
+            // 初始化Rpc Server
             doInit();
 
             logger.warn("Prepare to start server on port {} ", port);
+            // 启动Rpc Server,绑定端口号
             if (doStart()) {
                 logger.warn("Server started on port {}", port);
             } else {

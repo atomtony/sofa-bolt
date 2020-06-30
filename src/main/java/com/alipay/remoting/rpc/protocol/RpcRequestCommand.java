@@ -37,7 +37,9 @@ import com.alipay.remoting.util.IDGenerator;
 public class RpcRequestCommand extends RequestCommand {
     /** For serialization  */
     private static final long serialVersionUID = -4602613826188210946L;
+    // 请求对象
     private Object            requestObject;
+    // 包含包路径的类名称
     private String            requestClass;
 
     private CustomSerializer  customSerializer;
@@ -125,7 +127,7 @@ public class RpcRequestCommand extends RequestCommand {
                     && this.getCustomSerializer().serializeContent(this, invokeContext)) {
                     return;
                 }
-
+                // 获取序列化器，序列化对象，默认序列化器是Hession2
                 this.setContent(SerializerManager.getSerializer(this.getSerializer()).serialize(
                     this.requestObject));
             } catch (SerializationException e) {

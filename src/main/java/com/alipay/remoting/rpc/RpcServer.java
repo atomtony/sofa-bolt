@@ -228,21 +228,30 @@ public class RpcServer extends AbstractRemotingServer {
         if (this.addressParser == null) {
             this.addressParser = new RpcAddressParser();
         }
+        // 是否管理链接，默认是false，可以在创建RpcServer时传入true,是服务端参数
         if (this.switches().isOn(GlobalSwitch.SERVER_MANAGE_CONNECTION_SWITCH)) {
             // in server side, do not care the connection service state, so use null instead of global switch
             ConnectionSelectStrategy connectionSelectStrategy = new RandomSelectStrategy(null);
+            // 创建连接管理
             this.connectionManager = new DefaultServerConnectionManager(connectionSelectStrategy);
+            // 创建了连接管理线程池
             this.connectionManager.startup();
 
+            // 链接事件Handler
             this.connectionEventHandler = new RpcConnectionEventHandler(switches());
             this.connectionEventHandler.setConnectionManager(this.connectionManager);
+            // 设置链接监听事件
             this.connectionEventHandler.setConnectionEventListener(this.connectionEventListener);
         } else {
+            // 链接事件Handler
             this.connectionEventHandler = new ConnectionEventHandler(switches());
+            // 设置链接监听事件
             this.connectionEventHandler.setConnectionEventListener(this.connectionEventListener);
         }
+        // 连接管理，同步、异步发送指令，创建了指令工厂，
         initRpcRemoting();
         this.bootstrap = new ServerBootstrap();
+        // 设置Boss线程组和Worker线程住
         this.bootstrap.group(bossGroup, workerGroup)
             .channel(NettyEventLoopUtil.getServerSocketChannelClass())
             .option(ChannelOption.SO_BACKLOG, ConfigManager.tcp_so_backlog())
@@ -321,6 +330,7 @@ public class RpcServer extends AbstractRemotingServer {
         if (null != this.channelFuture) {
             this.channelFuture.channel().close();
         }
+        // 服务器是否阻塞停止，也就是是否执行完队列中的任务。
         if (this.switches().isOn(GlobalSwitch.SERVER_SYNC_STOP)) {
             this.bossGroup.shutdownGracefully().awaitUninterruptibly();
         } else {

@@ -145,6 +145,7 @@ public class RpcClient extends AbstractBoltClient {
             connectionMonitor.startup();
             logger.warn("Switch on connection monitor");
         }
+        // 是否重连，默认为false，是一个客户端
         if (switches().isOn(GlobalSwitch.CONN_RECONNECT_SWITCH)) {
             reconnectManager = new ReconnectManager(connectionManager);
             reconnectManager.startup();

@@ -25,9 +25,11 @@ import com.alipay.remoting.ProtocolManager;
  * @version $Id: RpcProtocols.java, v 0.1 2018-03-27 19:42 tsui Exp $
  */
 public class RpcProtocolManager {
+    // 协议版本号占用字节长度
     public static final int DEFAULT_PROTOCOL_CODE_LENGTH = 1;
 
     public static void initProtocols() {
+        // 注册协议和对应的版本号
         ProtocolManager.registerProtocol(new RpcProtocol(), RpcProtocol.PROTOCOL_CODE);
         ProtocolManager.registerProtocol(new RpcProtocolV2(), RpcProtocolV2.PROTOCOL_CODE);
     }

@@ -33,11 +33,13 @@ public class RpcCodec implements Codec {
 
     @Override
     public ChannelHandler newEncoder() {
+        // 默认用协议码为2的协议编码
         return new ProtocolCodeBasedEncoder(ProtocolCode.fromBytes(RpcProtocolV2.PROTOCOL_CODE));
     }
 
     @Override
     public ChannelHandler newDecoder() {
+        // 设置了协议码长度，当前只有V1，V2，编号分别是1、2，占一个字节
         return new RpcProtocolDecoder(RpcProtocolManager.DEFAULT_PROTOCOL_CODE_LENGTH);
     }
 }

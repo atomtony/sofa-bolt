@@ -185,11 +185,15 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
     @Override
     public void startup() throws LifeCycleException {
         super.startup();
-
+        // 保活时间60秒
         long keepAliveTime = ConfigManager.conn_create_tp_keepalive();
+        // 线程池任务队列大小50
         int queueSize = ConfigManager.conn_create_tp_queue_size();
+        // 最小线程池大小3
         int minPoolSize = ConfigManager.conn_create_tp_min_size();
+        // 最大线程池大小8
         int maxPoolSize = ConfigManager.conn_create_tp_max_size();
+        // 管理连接的线程池
         this.asyncCreateConnectionExecutor = new ThreadPoolExecutor(minPoolSize, maxPoolSize,
             keepAliveTime, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(queueSize),
             new NamedThreadFactory("Bolt-conn-warmup-executor", true));

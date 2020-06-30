@@ -27,16 +27,20 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ProtocolManager {
 
+    // Key：协议吗，Value:协议，当前有V1，V2两个协议，并发容器，线程安全
     private static final ConcurrentMap<ProtocolCode, Protocol> protocols = new ConcurrentHashMap<ProtocolCode, Protocol>();
 
+    // 根据协议码获取协议
     public static Protocol getProtocol(ProtocolCode protocolCode) {
         return protocols.get(protocolCode);
     }
 
+    // 注册协议，协议码和协议的映射
     public static void registerProtocol(Protocol protocol, byte... protocolCodeBytes) {
         registerProtocol(protocol, ProtocolCode.fromBytes(protocolCodeBytes));
     }
 
+    // 注册协议，协议码和协议的映射
     public static void registerProtocol(Protocol protocol, ProtocolCode protocolCode) {
         if (null == protocolCode || null == protocol) {
             throw new RuntimeException("Protocol: " + protocol + " and protocol code:"
@@ -48,6 +52,7 @@ public class ProtocolManager {
         }
     }
 
+    // 根据协议码注销，协议缓存
     public static Protocol unRegisterProtocol(byte protocolCode) {
         return ProtocolManager.protocols.remove(ProtocolCode.fromBytes(protocolCode));
     }

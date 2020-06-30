@@ -43,9 +43,11 @@ public abstract class RpcCommand implements RemotingCommand {
     /**
      * Code which stands for the command.
      */
+    // 命令码
     private CommandCode       cmdCode;
     /* command version */
     private byte              version          = 0x1;
+    // 请求类型，REQUEST，RESPONSE，REQUEST_ONEWAY
     private byte              type;
     /**
      * Serializer, see the Configs.SERIALIZER_DEFAULT for the default serializer.
@@ -56,12 +58,15 @@ public abstract class RpcCommand implements RemotingCommand {
      * protocol switches
      */
     private ProtocolSwitch    protocolSwitch   = new ProtocolSwitch();
+    // 请求编号
     private int               id;
     /** The length of clazz */
+    // 包含包路径类名称字节长度
     private short             clazzLength      = 0;
     private short             headerLength     = 0;
     private int               contentLength    = 0;
     /** The class of content */
+    // 包含包路径的类名称字节数据
     private byte[]            clazz;
     /** Header is used for transparent transmission. */
     private byte[]            header;

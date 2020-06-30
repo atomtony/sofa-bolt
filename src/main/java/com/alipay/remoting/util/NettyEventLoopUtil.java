@@ -43,6 +43,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 public class NettyEventLoopUtil {
 
     /** check whether epoll enabled, and it would not be changed during runtime. */
+    // 判断epoll多路服用是否可用，epoll是将已经就绪的I/O事件返回返回来，事件复杂度O(1)，而select和poll返回全部的I/O,需要全部遍历判断复杂度O(n)
     private static boolean epollEnabled = ConfigManager.netty_epoll() && Epoll.isAvailable();
 
     /**

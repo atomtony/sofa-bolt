@@ -50,14 +50,19 @@ public class ProtocolCodeBasedEncoder extends MessageToByteEncoder<Serializable>
     @Override
     protected void encode(ChannelHandlerContext ctx, Serializable msg, ByteBuf out)
                                                                                    throws Exception {
+        // 查看创建连接时是否设置了协议码
         Attribute<ProtocolCode> att = ctx.channel().attr(Connection.PROTOCOL);
         ProtocolCode protocolCode;
         if (att == null || att.get() == null) {
+            // 设置默认协议码
             protocolCode = this.defaultProtocolCode;
         } else {
+            // 获取协议码
             protocolCode = att.get();
         }
+        // 根据协议码获取协议
         Protocol protocol = ProtocolManager.getProtocol(protocolCode);
+        // 调用协议的编码器编码
         protocol.getEncoder().encode(ctx, msg, out);
     }
 
