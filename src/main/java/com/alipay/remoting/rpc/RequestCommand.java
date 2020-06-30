@@ -29,6 +29,7 @@ public abstract class RequestCommand extends RpcCommand {
     /** For serialization  */
     private static final long serialVersionUID = -3457717009326601317L;
     /** timeout, -1 stands for no timeout */
+    // 客户端发发送的请求超时时间
     private int               timeout          = -1;
 
     public RequestCommand() {

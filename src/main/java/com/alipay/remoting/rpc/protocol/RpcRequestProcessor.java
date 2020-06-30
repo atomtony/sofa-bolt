@@ -75,9 +75,12 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
     @Override
     public void process(RemotingContext ctx, RpcRequestCommand cmd, ExecutorService defaultExecutor)
                                                                                                     throws Exception {
+
+        // 反序列化类名
         if (!deserializeRequestCommand(ctx, cmd, RpcDeserializeLevel.DESERIALIZE_CLAZZ)) {
             return;
         }
+        // 获取用户处理器
         UserProcessor userProcessor = ctx.getUserProcessor(cmd.getRequestClass());
         if (userProcessor == null) {
             String errMsg = "No user processor found for request: " + cmd.getRequestClass();
@@ -121,6 +124,7 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
         }
 
         // use the final executor dispatch process task
+        // 创建任务并指令任务
         executor.execute(new ProcessTask(ctx, cmd));
     }
 
@@ -132,16 +136,20 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
     public void doProcess(final RemotingContext ctx, RpcRequestCommand cmd) throws Exception {
         long currentTimestamp = System.currentTimeMillis();
 
+        // 预处理请求指令
         preProcessRemotingContext(ctx, cmd, currentTimestamp);
+        // 超时丢弃
         if (ctx.isTimeoutDiscard() && ctx.isRequestTimeout()) {
             timeoutLog(cmd, currentTimestamp, ctx);// do some log
             return;// then, discard this request
         }
+        // 打印日志
         debugLog(ctx, cmd, currentTimestamp);
         // decode request all
         if (!deserializeRequestCommand(ctx, cmd, RpcDeserializeLevel.DESERIALIZE_ALL)) {
             return;
         }
+        // 分发用户处理器
         dispatchToUserProcessor(ctx, cmd);
     }
 
@@ -156,7 +164,9 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
     public void sendResponseIfNecessary(final RemotingContext ctx, byte type,
                                         final RemotingCommand response) {
         final int id = response.getId();
+        // 不是REQUEST_ONEWAY请求，需要返回响应指令
         if (type != RpcCommandType.REQUEST_ONEWAY) {
+            // 响应指令
             RemotingCommand serializedResponse = response;
             try {
                 response.serialize();
@@ -180,6 +190,7 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
                     .createExceptionResponse(id, t, errMsg);
             }
 
+            // 发送响应指令
             ctx.writeAndFlush(serializedResponse).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
@@ -215,10 +226,14 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
      * @param cmd rpc request command
      */
     private void dispatchToUserProcessor(RemotingContext ctx, RpcRequestCommand cmd) {
+        // 指令id
         final int id = cmd.getId();
+        // 请求类型
         final byte type = cmd.getType();
         // processor here must not be null, for it have been checked before
+        // 获取用户处理器
         UserProcessor processor = ctx.getUserProcessor(cmd.getRequestClass());
+        // 异步处理器
         if (processor instanceof AsyncUserProcessor) {
             try {
                 processor.handleRequest(processor.preHandleRequest(ctx, cmd.getRequestObject()),
@@ -236,10 +251,11 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
             }
         } else {
             try {
+                // 同步处理器处理消息，返回响应消息
                 Object responseObject = processor
                     .handleRequest(processor.preHandleRequest(ctx, cmd.getRequestObject()),
                         cmd.getRequestObject());
-
+                // 根据请求类型，是否返回响应，单向请求不需要返回响应
                 sendResponseIfNecessary(ctx, type,
                     this.getCommandFactory().createResponse(responseObject, cmd));
             } catch (RejectedExecutionException e) {

@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ConnectionEventListener {
 
+    // 连接事件处理器
     private ConcurrentHashMap<ConnectionEventType, List<ConnectionEventProcessor>> processors = new ConcurrentHashMap<ConnectionEventType, List<ConnectionEventProcessor>>(
                                                                                                   3);
 
@@ -38,8 +39,10 @@ public class ConnectionEventListener {
      * @param connection Connection
      */
     public void onEvent(ConnectionEventType type, String remoteAddress, Connection connection) {
+        // 根据连接事件类型获取事件处理器，type是连接事件或者关闭连接事件
         List<ConnectionEventProcessor> processorList = this.processors.get(type);
         if (processorList != null) {
+            // 遍历事件事件处理器处理，回调处理，一次只可能是连接事件或者断开连接事件
             for (ConnectionEventProcessor processor : processorList) {
                 processor.onEvent(remoteAddress, connection);
             }
@@ -56,6 +59,7 @@ public class ConnectionEventListener {
                                             ConnectionEventProcessor processor) {
         List<ConnectionEventProcessor> processorList = this.processors.get(type);
         if (processorList == null) {
+            // 添加事件
             this.processors.putIfAbsent(type, new ArrayList<ConnectionEventProcessor>(1));
             processorList = this.processors.get(type);
         }

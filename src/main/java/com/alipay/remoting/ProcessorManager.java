@@ -58,6 +58,11 @@ public class ProcessorManager {
                                                                                     .default_tp_keepalive_time();
 
     public ProcessorManager() {
+        // 消息处理器线程池
+        // 核心线程数20
+        // 最大线程数400
+        // 线程保活60秒
+        // 消息处理线程池队列容量600
         defaultExecutor = new ThreadPoolExecutor(minPoolSize, maxPoolSize, keepAliveTime,
             TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new NamedThreadFactory(
                 "Bolt-default-executor", true));

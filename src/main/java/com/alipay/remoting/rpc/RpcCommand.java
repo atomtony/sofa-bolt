@@ -53,6 +53,7 @@ public abstract class RpcCommand implements RemotingCommand {
      * Serializer, see the Configs.SERIALIZER_DEFAULT for the default serializer.
      * Notice: this can not be changed after initialized at runtime.
      */
+    // 默认序列化下标
     private byte              serializer       = ConfigManager.serializer;
     /**
      * protocol switches

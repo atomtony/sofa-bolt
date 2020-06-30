@@ -73,10 +73,14 @@ public class RpcProtocol implements Protocol {
     private CommandFactory   commandFactory;
 
     public RpcProtocol() {
+        // 一级指令编码器
         this.encoder = new RpcCommandEncoder();
+        // 一级指令解码器
         this.decoder = new RpcCommandDecoder();
+        // 指令工厂
         this.commandFactory = new RpcCommandFactory();
         this.heartbeatTrigger = new RpcHeartbeatTrigger(this.commandFactory);
+        // 指令处理
         this.commandHandler = new RpcCommandHandler(this.commandFactory);
     }
 

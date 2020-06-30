@@ -274,23 +274,33 @@ public class RpcServer extends AbstractRemotingServer {
         // enable trigger mode for epoll if need
         NettyEventLoopUtil.enableTriggeredMode(bootstrap);
 
+        // 空闲事件监听开关
         final boolean idleSwitch = ConfigManager.tcp_idle_switch();
+        // 空闲超时事件
         final int idleTime = ConfigManager.tcp_server_idle();
+        // 服务端空闲超时Handler
         final ChannelHandler serverIdleHandler = new ServerIdleHandler();
+        // 指令处理Handler
         final RpcHandler rpcHandler = new RpcHandler(true, this.userProcessors);
         this.bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
 
             @Override
             protected void initChannel(SocketChannel channel) {
                 ChannelPipeline pipeline = channel.pipeline();
+                // 添加解码Handler
                 pipeline.addLast("decoder", codec.newDecoder());
+                // 添加编码Handler
                 pipeline.addLast("encoder", codec.newEncoder());
+                // 空闲监听开关，默认是true
                 if (idleSwitch) {
+                    // 设置读写不监听，设置连接空闲90000毫秒触发
                     pipeline.addLast("idleStateHandler", new IdleStateHandler(0, 0, idleTime,
                         TimeUnit.MILLISECONDS));
                     pipeline.addLast("serverIdleHandler", serverIdleHandler);
                 }
+                // 连接事件Handler
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
+                // 指令处理Handler
                 pipeline.addLast("handler", rpcHandler);
                 createConnection(channel);
             }
@@ -304,11 +314,13 @@ public class RpcServer extends AbstractRemotingServer {
              */
             private void createConnection(SocketChannel channel) {
                 Url url = addressParser.parse(RemotingUtil.parseRemoteAddress(channel));
+                // 是否管理链接，默认是false，可以在创建RpcServer时传入true,是服务端参数
                 if (switches().isOn(GlobalSwitch.SERVER_MANAGE_CONNECTION_SWITCH)) {
                     connectionManager.add(new Connection(channel, url), url.getUniqueKey());
                 } else {
                     new Connection(channel, url);
                 }
+                // 触发管理通到的下一个ChannelInboundHandler，也就是解码器Handler
                 channel.pipeline().fireUserEventTriggered(ConnectionEventType.CONNECT);
             }
         });

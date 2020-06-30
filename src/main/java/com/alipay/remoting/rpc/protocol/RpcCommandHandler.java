@@ -63,17 +63,20 @@ public class RpcCommandHandler implements CommandHandler {
      */
     public RpcCommandHandler(CommandFactory commandFactory) {
         this.commandFactory = commandFactory;
+        // 消息处理管理
         this.processorManager = new ProcessorManager();
         //process request
+        // 注册请求处理器
         this.processorManager.registerProcessor(RpcCommandCode.RPC_REQUEST,
             new RpcRequestProcessor(this.commandFactory));
         //process response
+        // 注册响应处理器
         this.processorManager.registerProcessor(RpcCommandCode.RPC_RESPONSE,
             new RpcResponseProcessor());
-
+        // 注册心跳处理器
         this.processorManager.registerProcessor(CommonCommandCode.HEARTBEAT,
             new RpcHeartBeatProcessor());
-
+        // 注册默认处理器
         this.processorManager
             .registerDefaultProcessor(new AbstractRemotingProcessor<RemotingCommand>() {
                 @Override
@@ -117,6 +120,7 @@ public class RpcCommandHandler implements CommandHandler {
                     handleTask.run();
                 }
             } else {
+                // 处理不是List类型的指令
                 process(ctx, msg);
             }
         } catch (final Throwable t) {
@@ -128,7 +132,9 @@ public class RpcCommandHandler implements CommandHandler {
     private void process(RemotingContext ctx, Object msg) {
         try {
             final RpcCommand cmd = (RpcCommand) msg;
+            // 根据指令码获取对应的处理器，内置的有请求处理器，响应处理器和心跳处理器
             final RemotingProcessor processor = processorManager.getProcessor(cmd.getCmdCode());
+            // 用处理器线程池处理指令任务
             processor.process(ctx, cmd, processorManager.getDefaultExecutor());
         } catch (final Throwable t) {
             processException(ctx, msg, t);

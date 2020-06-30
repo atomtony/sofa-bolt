@@ -58,8 +58,11 @@ public class RpcHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // 获取协议码
         ProtocolCode protocolCode = ctx.channel().attr(Connection.PROTOCOL).get();
+        // 获取协议
         Protocol protocol = ProtocolManager.getProtocol(protocolCode);
+        // 调用指令Handler，处理消息
         protocol.getCommandHandler().handleCommand(
             new RemotingContext(ctx, new InvokeContext(), serverSide, userProcessors), msg);
     }
