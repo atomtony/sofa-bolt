@@ -49,6 +49,7 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
     private int                 lessLen;
 
     {
+        // 设置请求和响应头长度较小的
         lessLen = RpcProtocolV2.getResponseHeaderLength() < RpcProtocolV2.getRequestHeaderLength() ? RpcProtocolV2
             .getResponseHeaderLength() : RpcProtocolV2.getRequestHeaderLength();
     }
@@ -59,9 +60,12 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         // the less length between response header and request header
+        // 可读数据大于最小最少长度
         if (in.readableBytes() >= lessLen) {
+            // 标记读位置
             in.markReaderIndex();
             byte protocol = in.readByte();
+            // 重置读位置到上次标记位置
             in.resetReaderIndex();
             if (protocol == RpcProtocolV2.PROTOCOL_CODE) {
                 /*
@@ -83,6 +87,7 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
                  */
                 if (in.readableBytes() > 2 + 1) {
                     int startIndex = in.readerIndex();
+                    // 标记读位置
                     in.markReaderIndex();
                     in.readByte(); //protocol code
                     byte version = in.readByte(); //protocol version
@@ -132,6 +137,7 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
                                     checkCRC(in, startIndex);
                                 }
                             } else {// not enough data
+                                // 发生读半包数据，重置读位置到上次标记位置
                                 in.resetReaderIndex();
                                 return;
                             }
@@ -153,6 +159,7 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
 
                             out.add(command);
                         } else {
+                            // 发生读半包数据，重置读位置到上次标记位置
                             in.resetReaderIndex();
                         }
                     } else if (type == RpcCommandType.RESPONSE) {
@@ -200,6 +207,7 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
                                     checkCRC(in, startIndex);
                                 }
                             } else {// not enough data
+                                // 发生读半包数据，重置读位置到上次标记位置
                                 in.resetReaderIndex();
                                 return;
                             }
@@ -224,6 +232,7 @@ public class RpcCommandDecoderV2 implements CommandDecoder {
 
                             out.add(command);
                         } else {
+                            // 发生读半包数据，重置读位置到上次标记位置
                             in.resetReaderIndex();
                         }
                     } else {

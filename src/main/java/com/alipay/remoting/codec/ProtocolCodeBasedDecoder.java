@@ -78,6 +78,7 @@ public class ProtocolCodeBasedDecoder extends AbstractBatchDecoder {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        // 标记读下标
         in.markReaderIndex();
         // 解析协议码
         ProtocolCode protocolCode = decodeProtocolCode(in);
@@ -96,6 +97,7 @@ public class ProtocolCodeBasedDecoder extends AbstractBatchDecoder {
             // 获取协议
             Protocol protocol = ProtocolManager.getProtocol(protocolCode);
             if (null != protocol) {
+                // 把读下表重置到上一次标记处
                 in.resetReaderIndex();
                 // 协议调用解码器解码
                 protocol.getDecoder().decode(ctx, in, out);

@@ -237,13 +237,16 @@ public abstract class AbstractBatchDecoder extends ChannelInboundHandlerAdapter 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf) {
+            // 缓存指令数据
             RecyclableArrayList out = RecyclableArrayList.newInstance();
             try {
                 ByteBuf data = (ByteBuf) msg;
                 first = cumulation == null;
+                // 第一次请求，赋值cumulation
                 if (first) {
                     cumulation = data;
                 } else {
+                    // 调用累积器合并数据
                     cumulation = cumulator.cumulate(ctx.alloc(), cumulation, data);
                 }
                 callDecode(ctx, cumulation, out);
@@ -355,33 +358,44 @@ public abstract class AbstractBatchDecoder extends ChannelInboundHandlerAdapter 
      */
     protected void callDecode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         try {
+            // 有可读数据，尝试解析指令
             while (in.isReadable()) {
+                // 解析前指令个数
                 int outSize = out.size();
                 int oldInputLength = in.readableBytes();
+                // 解析指令
                 decode(ctx, in, out);
 
                 // Check if this handler was removed before continuing the loop.
                 // If it was removed, it is not safe to continue to operate on the buffer.
                 //
                 // See https://github.com/netty/netty/issues/1664
+                // 如果被移除，终止解码
                 if (ctx.isRemoved()) {
                     break;
                 }
 
+                // 前后指令个数未发生变化
                 if (outSize == out.size()) {
+                    // 终止解码，继续累积数据，重新尝试解码，
+                    // 一般读到半包数据，重置到开始读的位置，等待数据下次解码
                     if (oldInputLength == in.readableBytes()) {
                         break;
                     } else {
+                        // 读位置发生变化，说明读了一部分数据
+                        // 设计解码器时，需要设计数据缓存或者记录上次解码处继续解码
                         continue;
                     }
                 }
 
+                // 未读数据
                 if (oldInputLength == in.readableBytes()) {
                     throw new DecoderException(
                         StringUtil.simpleClassName(getClass())
                                 + ".decode() did not read anything but decoded a message.");
                 }
 
+                // 默认false, 不是单次解码数据
                 if (isSingleDecode()) {
                     break;
                 }
