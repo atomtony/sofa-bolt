@@ -260,13 +260,16 @@ public class RpcServer extends AbstractRemotingServer {
             .childOption(ChannelOption.SO_KEEPALIVE, ConfigManager.tcp_so_keepalive());
 
         // set write buffer water mark
+        // 设置写缓存区上限和下限
         initWriteBufferWaterMark();
 
         // init byte buf allocator
         if (ConfigManager.netty_buffer_pooled()) {
+            // 缓存池分配器
             this.bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         } else {
+            // 非缓存池分配器
             this.bootstrap.option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
                 .childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
         }
@@ -302,6 +305,7 @@ public class RpcServer extends AbstractRemotingServer {
                 pipeline.addLast("connectionEventHandler", connectionEventHandler);
                 // 指令处理Handler
                 pipeline.addLast("handler", rpcHandler);
+                // 创建连接
                 createConnection(channel);
             }
 
@@ -328,7 +332,9 @@ public class RpcServer extends AbstractRemotingServer {
 
     @Override
     protected boolean doStart() throws InterruptedException {
+        // 绑定端口号
         this.channelFuture = this.bootstrap.bind(new InetSocketAddress(ip(), port())).sync();
+        // 返回是否成功
         return this.channelFuture.isSuccess();
     }
 
@@ -348,6 +354,7 @@ public class RpcServer extends AbstractRemotingServer {
         } else {
             this.bossGroup.shutdownGracefully();
         }
+        // 是否管理链接，默认是false，可以在创建RpcServer时传入true,是服务端参数
         if (this.switches().isOn(GlobalSwitch.SERVER_MANAGE_CONNECTION_SWITCH)
             && null != this.connectionManager) {
             this.connectionManager.shutdown();
@@ -916,7 +923,9 @@ public class RpcServer extends AbstractRemotingServer {
      * init netty write buffer water mark
      */
     private void initWriteBufferWaterMark() {
+        // 32K
         int lowWaterMark = this.netty_buffer_low_watermark();
+        // 64K
         int highWaterMark = this.netty_buffer_high_watermark();
         if (lowWaterMark > highWaterMark) {
             throw new IllegalArgumentException(
@@ -929,6 +938,7 @@ public class RpcServer extends AbstractRemotingServer {
                 "[server side] bolt netty low water mark is {} bytes, high water mark is {} bytes",
                 lowWaterMark, highWaterMark);
         }
+        // 设置写缓存区上限和下限
         this.bootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(
             lowWaterMark, highWaterMark));
     }

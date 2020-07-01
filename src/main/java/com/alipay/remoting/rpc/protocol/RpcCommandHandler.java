@@ -100,6 +100,7 @@ public class RpcCommandHandler implements CommandHandler {
      */
     private void handle(final RemotingContext ctx, final Object msg) {
         try {
+            // 处理批量指令
             if (msg instanceof List) {
                 final Runnable handleTask = new Runnable() {
                     @Override
@@ -120,7 +121,7 @@ public class RpcCommandHandler implements CommandHandler {
                     handleTask.run();
                 }
             } else {
-                // 处理不是List类型的指令
+                // 处理单个指令
                 process(ctx, msg);
             }
         } catch (final Throwable t) {

@@ -42,18 +42,22 @@ public class RpcHeartBeatProcessor extends AbstractRemotingProcessor {
 
     @Override
     public void doProcess(final RemotingContext ctx, RemotingCommand msg) {
+        // 心跳请求指令
         if (msg instanceof HeartbeatCommand) {// process the heartbeat
             final int id = msg.getId();
             if (logger.isDebugEnabled()) {
                 logger.debug("Heartbeat received! Id=" + id + ", from "
                              + RemotingUtil.parseRemoteAddress(ctx.getChannelContext().channel()));
             }
+
+            // 心跳应答指令
             HeartbeatAckCommand ack = new HeartbeatAckCommand();
             ack.setId(id);
             ctx.writeAndFlush(ack).addListener(new ChannelFutureListener() {
 
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
+                    // 发送成功
                     if (future.isSuccess()) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Send heartbeat ack done! Id={}, to remoteAddr={}", id,
@@ -67,12 +71,17 @@ public class RpcHeartBeatProcessor extends AbstractRemotingProcessor {
 
             });
         } else if (msg instanceof HeartbeatAckCommand) {
+            // 获取连接
             Connection conn = ctx.getChannelContext().channel().attr(Connection.CONNECTION).get();
+            // 请求回调
             InvokeFuture future = conn.removeInvokeFuture(msg.getId());
             if (future != null) {
+                // 设置响应消息
                 future.putResponse(msg);
+                // 取消超时
                 future.cancelTimeout();
                 try {
+                    // 执行回调
                     future.executeInvokeCallback();
                 } catch (Exception e) {
                     logger.error(

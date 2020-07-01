@@ -58,7 +58,9 @@ public class RpcResponseProcessor extends AbstractRemotingProcessor<RemotingComm
     @Override
     public void doProcess(RemotingContext ctx, RemotingCommand cmd) {
 
+        // 获取链接
         Connection conn = ctx.getChannelContext().channel().attr(Connection.CONNECTION).get();
+        // 移除缓存响应回调
         InvokeFuture future = conn.removeInvokeFuture(cmd.getId());
         ClassLoader oldClassLoader = null;
         try {
@@ -67,9 +69,12 @@ public class RpcResponseProcessor extends AbstractRemotingProcessor<RemotingComm
                     oldClassLoader = Thread.currentThread().getContextClassLoader();
                     Thread.currentThread().setContextClassLoader(future.getAppClassLoader());
                 }
+                // 设置响应消息
                 future.putResponse(cmd);
+                // 取消超时
                 future.cancelTimeout();
                 try {
+                    // 执行回调
                     future.executeInvokeCallback();
                 } catch (Exception e) {
                     logger.error("Exception caught when executing invoke callback, id={}",

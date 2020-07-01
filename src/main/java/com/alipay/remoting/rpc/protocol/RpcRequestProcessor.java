@@ -85,20 +85,25 @@ public class RpcRequestProcessor extends AbstractRemotingProcessor<RpcRequestCom
         if (userProcessor == null) {
             String errMsg = "No user processor found for request: " + cmd.getRequestClass();
             logger.error(errMsg);
+            // 发送错误响应，未找到用户处理器
             sendResponseIfNecessary(ctx, cmd.getType(), this.getCommandFactory()
                 .createExceptionResponse(cmd.getId(), errMsg));
             return;// must end process
         }
 
         // set timeout check state from user's processor
+        // 设置超时丢弃
         ctx.setTimeoutDiscard(userProcessor.timeoutDiscard());
 
         // to check whether to process in io thread
+        // 判断是否I/O线程处理，也就是Worker线程
         if (userProcessor.processInIOThread()) {
+            // 反序列化请求指令，类名，头和体
             if (!deserializeRequestCommand(ctx, cmd, RpcDeserializeLevel.DESERIALIZE_ALL)) {
                 return;
             }
             // process in io thread
+            // I/O线程处理请求指令
             new ProcessTask(ctx, cmd).run();
             return;// end
         }

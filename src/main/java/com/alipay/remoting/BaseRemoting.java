@@ -58,6 +58,7 @@ public abstract class BaseRemoting {
     protected RemotingCommand invokeSync(final Connection conn, final RemotingCommand request,
                                          final int timeoutMillis) throws RemotingException,
                                                                  InterruptedException {
+        // 创建回调
         final InvokeFuture future = createInvokeFuture(request, request.getInvokeContext());
         conn.addInvokeFuture(future);
         final int requestId = request.getId();
