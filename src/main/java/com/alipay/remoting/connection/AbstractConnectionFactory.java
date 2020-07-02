@@ -69,6 +69,7 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
     private final ChannelHandler        heartbeatHandler;
     private final ChannelHandler        handler;
 
+    // 客户端启动器
     protected Bootstrap                 bootstrap;
 
     public AbstractConnectionFactory(Codec codec, ChannelHandler heartbeatHandler,
@@ -114,9 +115,11 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory {
 
                 boolean idleSwitch = ConfigManager.tcp_idle_switch();
                 if (idleSwitch) {
+                    // 空闲监听
                     pipeline.addLast("idleStateHandler",
                         new IdleStateHandler(ConfigManager.tcp_idle(), ConfigManager.tcp_idle(), 0,
                             TimeUnit.MILLISECONDS));
+                    // 空闲监听超时，触发心跳机制
                     pipeline.addLast("heartbeatHandler", heartbeatHandler);
                 }
 

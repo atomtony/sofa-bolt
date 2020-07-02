@@ -65,10 +65,13 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
      */
     @Override
     public void heartbeatTriggered(final ChannelHandlerContext ctx) throws Exception {
+        // 获取心跳次数
         Integer heartbeatTimes = ctx.channel().attr(Connection.HEARTBEAT_COUNT).get();
+        // 获取连接
         final Connection conn = ctx.channel().attr(Connection.CONNECTION).get();
         if (heartbeatTimes >= maxCount) {
             try {
+                // 超过最大心跳次数，关闭连接
                 conn.close();
                 logger.error(
                     "Heartbeat failed for {} times, close the connection from client side: {} ",
@@ -77,16 +80,20 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                 logger.warn("Exception caught when closing connection in SharableHandler.", e);
             }
         } else {
+            // 获取心跳开关
             boolean heartbeatSwitch = ctx.channel().attr(Connection.HEARTBEAT_SWITCH).get();
+            // 关闭状态，则返回
             if (!heartbeatSwitch) {
                 return;
             }
+            // 心跳请求指令
             final HeartbeatCommand heartbeat = new HeartbeatCommand();
 
             final InvokeFuture future = new DefaultInvokeFuture(heartbeat.getId(),
                 new InvokeCallbackListener() {
                     @Override
                     public void onResponse(InvokeFuture future) {
+                        // 获取响应
                         ResponseCommand response;
                         try {
                             response = (ResponseCommand) future.waitResponse(0);
@@ -96,6 +103,7 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                                 e);
                             return;
                         }
+                        // 心跳响应成功，重置心跳次数为0
                         if (response != null
                             && response.getResponseStatus() == ResponseStatus.SUCCESS) {
                             if (logger.isDebugEnabled()) {
@@ -105,16 +113,19 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                             }
                             ctx.channel().attr(Connection.HEARTBEAT_COUNT).set(0);
                         } else {
+                            // 打印心跳超时
                             if (response != null
                                 && response.getResponseStatus() == ResponseStatus.TIMEOUT) {
                                 logger.error("Heartbeat timeout! The address is {}",
                                     RemotingUtil.parseRemoteAddress(ctx.channel()));
                             } else {
+                                // 打印心跳失败信息
                                 logger.error(
                                     "Heartbeat exception caught! Error code={}, The address is {}",
                                     response == null ? null : response.getResponseStatus(),
                                     RemotingUtil.parseRemoteAddress(ctx.channel()));
                             }
+                            // 心跳失败次数增加1
                             Integer times = ctx.channel().attr(Connection.HEARTBEAT_COUNT).get();
                             ctx.channel().attr(Connection.HEARTBEAT_COUNT).set(times + 1);
                         }
@@ -125,15 +136,19 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                         return ctx.channel().remoteAddress().toString();
                     }
                 }, null, heartbeat.getProtocolCode().getFirstByte(), this.commandFactory);
+            // 心跳ID
             final int heartbeatId = heartbeat.getId();
+            // 添加到响应表单
             conn.addInvokeFuture(future);
             if (logger.isDebugEnabled()) {
                 logger.debug("Send heartbeat, successive count={}, Id={}, to remoteAddr={}",
                     heartbeatTimes, heartbeatId, RemotingUtil.parseRemoteAddress(ctx.channel()));
             }
+            // 发送心跳指令
             ctx.writeAndFlush(heartbeat).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
+                    //  打印发送成功或者失败日志
                     if (future.isSuccess()) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Send heartbeat done! Id={}, to remoteAddr={}",
@@ -145,13 +160,17 @@ public class RpcHeartbeatTrigger implements HeartbeatTrigger {
                     }
                 }
             });
+            // 设置响应超时任务
             TimerHolder.getTimer().newTimeout(new TimerTask() {
                 @Override
                 public void run(Timeout timeout) throws Exception {
+                    // 根据ID获取Future
                     InvokeFuture future = conn.removeInvokeFuture(heartbeatId);
                     if (future != null) {
+                        // 设置超时响应
                         future.putResponse(commandFactory.createTimeoutResponse(conn
                             .getRemoteAddress()));
+                        // 尝试执行回调
                         future.tryAsyncExecuteInvokeCallbackAbnormally();
                     }
                 }

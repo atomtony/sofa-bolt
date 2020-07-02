@@ -43,6 +43,7 @@ public class Url {
     private int        port;
 
     /** unique key of this url */
+    // IP:PORT
     private String     uniqueKey;
 
     /** URL args: timeout value when do connect */

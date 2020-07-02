@@ -57,9 +57,11 @@ public class RandomSelectStrategy implements ConnectionSelectStrategy {
             }
 
             Connection result;
+            // 是否连接监控，默认false
             if (null != this.globalSwitch
                 && this.globalSwitch.isOn(GlobalSwitch.CONN_MONITOR_SWITCH)) {
                 List<Connection> serviceStatusOnConnections = new ArrayList<Connection>();
+                // 筛选除链接状态是ON状态，然后随机返回一个连接
                 for (Connection conn : connections) {
                     String serviceStatus = (String) conn.getAttribute(Configs.CONN_SERVICE_STATUS);
                     if (!StringUtils.equals(serviceStatus, Configs.CONN_SERVICE_STATUS_OFF)) {
@@ -70,8 +72,10 @@ public class RandomSelectStrategy implements ConnectionSelectStrategy {
                     throw new Exception(
                         "No available connection when select in RandomSelectStrategy.");
                 }
+                // 随机返回一个连接
                 result = randomGet(serviceStatusOnConnections);
             } else {
+                // 随机返回一个连接
                 result = randomGet(connections);
             }
             return result;
@@ -95,10 +99,12 @@ public class RandomSelectStrategy implements ConnectionSelectStrategy {
         int size = connections.size();
         int tries = 0;
         Connection result = null;
+        // 随机没获取到连接或者连接状态不好，继续随机获取，直至超过最大尝试次数
         while ((result == null || !result.isFine()) && tries++ < MAX_TIMES) {
             result = connections.get(this.random.nextInt(size));
         }
 
+        // 随机没获取到连接或者连接状态不好,返回null
         if (result != null && !result.isFine()) {
             result = null;
         }

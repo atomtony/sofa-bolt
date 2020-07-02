@@ -67,6 +67,8 @@ public class RpcAddressParser implements RemotingAddressParser {
 
         int size = url.length();
         int pos = 0;
+
+        // 截取IP
         for (int i = 0; i < size; ++i) {
             if (COLON == url.charAt(i)) {
                 ip = url.substring(pos, i);
@@ -97,6 +99,7 @@ public class RpcAddressParser implements RemotingAddressParser {
                 break;
             }
             // end without a QUES
+            // 截取到port
             if (i == size - 1) {
                 port = url.substring(pos + 1, i + 1);
                 pos = size;
@@ -108,6 +111,7 @@ public class RpcAddressParser implements RemotingAddressParser {
             while (pos < (size - 1)) {
                 String key = null;
                 String value = null;
+                // 截取key
                 for (int i = pos; i < size; ++i) {
                     if (EQUAL == url.charAt(i)) {
                         key = url.substring(pos + 1, i);
@@ -126,6 +130,7 @@ public class RpcAddressParser implements RemotingAddressParser {
                                                            + "], must have one EQUAL[=]! ");
                     }
                 }
+                // 截取value
                 for (int i = pos; i < size; ++i) {
                     if (AND == url.charAt(i)) {
                         value = url.substring(pos + 1, i);
@@ -148,7 +153,9 @@ public class RpcAddressParser implements RemotingAddressParser {
             }
         }
         parsedUrl = new Url(url, ip, Integer.parseInt(port), properties);
+        // 设置连接超时时间，协议码，协议版本号,每个URL连接数据，连接预热
         this.initUrlArgs(parsedUrl);
+        // 加入缓存
         Url.parsedUrls.put(url, new SoftReference<Url>(parsedUrl));
         return parsedUrl;
     }
@@ -202,6 +209,7 @@ public class RpcAddressParser implements RemotingAddressParser {
     @Override
     public void initUrlArgs(Url url) {
         String connTimeoutStr = url.getProperty(RpcConfigs.CONNECT_TIMEOUT_KEY);
+        // 设置默认连接超时时间
         int connTimeout = Configs.DEFAULT_CONNECT_TIMEOUT;
         if (StringUtils.isNotBlank(connTimeoutStr)) {
             if (StringUtils.isNumeric(connTimeoutStr)) {
@@ -216,6 +224,7 @@ public class RpcAddressParser implements RemotingAddressParser {
         url.setConnectTimeout(connTimeout);
 
         String protocolStr = url.getProperty(RpcConfigs.URL_PROTOCOL);
+        // 默认协议码是1
         byte protocol = RpcProtocol.PROTOCOL_CODE;
         if (StringUtils.isNotBlank(protocolStr)) {
             if (StringUtils.isNumeric(protocolStr)) {
@@ -230,6 +239,7 @@ public class RpcAddressParser implements RemotingAddressParser {
         url.setProtocol(protocol);
 
         String versionStr = url.getProperty(RpcConfigs.URL_VERSION);
+        // 默认协议版本号1
         byte version = RpcProtocolV2.PROTOCOL_VERSION_1;
         if (StringUtils.isNotBlank(versionStr)) {
             if (StringUtils.isNumeric(versionStr)) {
@@ -244,6 +254,7 @@ public class RpcAddressParser implements RemotingAddressParser {
         url.setVersion(version);
 
         String connNumStr = url.getProperty(RpcConfigs.CONNECTION_NUM_KEY);
+        // 默认每个URL1个连接
         int connNum = Configs.DEFAULT_CONN_NUM_PER_URL;
         if (StringUtils.isNotBlank(connNumStr)) {
             if (StringUtils.isNumeric(connNumStr)) {
@@ -258,6 +269,7 @@ public class RpcAddressParser implements RemotingAddressParser {
         url.setConnNum(connNum);
 
         String connWarmupStr = url.getProperty(RpcConfigs.CONNECTION_WARMUP_KEY);
+        // 默认连接不预热
         boolean connWarmup = false;
         if (StringUtils.isNotBlank(connWarmupStr)) {
             connWarmup = Boolean.parseBoolean(connWarmupStr);

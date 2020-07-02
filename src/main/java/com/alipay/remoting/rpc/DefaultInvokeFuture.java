@@ -242,6 +242,7 @@ public class DefaultInvokeFuture implements InvokeFuture {
             if (null != protocol) {
                 CommandHandler commandHandler = protocol.getCommandHandler();
                 if (null != commandHandler) {
+                    // 获取处理器线程池
                     ExecutorService executor = commandHandler.getDefaultExecutor();
                     if (null != executor) {
                         executor.execute(new Runnable() {

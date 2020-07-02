@@ -48,6 +48,7 @@ public class ServerIdleHandler extends ChannelDuplexHandler {
             try {
                 logger.warn("Connection idle, close it from server side: {}",
                     RemotingUtil.parseRemoteAddress(ctx.channel()));
+                // 服务器端空闲超时，关闭连接
                 ctx.close();
             } catch (Exception e) {
                 logger.warn("Exception caught when closing connection in ServerIdleHandler.", e);

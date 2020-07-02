@@ -125,6 +125,7 @@ public abstract class BaseRemoting {
 
                 @Override
                 public void operationComplete(ChannelFuture cf) throws Exception {
+                    // 发送失败情况下的处理，发送失败响应
                     if (!cf.isSuccess()) {
                         InvokeFuture f = conn.removeInvokeFuture(requestId);
                         if (f != null) {
@@ -169,6 +170,7 @@ public abstract class BaseRemoting {
             Timeout timeout = TimerHolder.getTimer().newTimeout(new TimerTask() {
                 @Override
                 public void run(Timeout timeout) throws Exception {
+                    // 超时情况下的处理，发送超时响应
                     InvokeFuture future = conn.removeInvokeFuture(requestId);
                     if (future != null) {
                         future.putResponse(commandFactory.createTimeoutResponse(conn
@@ -183,9 +185,11 @@ public abstract class BaseRemoting {
 
                 @Override
                 public void operationComplete(ChannelFuture cf) throws Exception {
+                    // 发送失败情况下的处理，发送失败响应
                     if (!cf.isSuccess()) {
                         InvokeFuture f = conn.removeInvokeFuture(requestId);
                         if (f != null) {
+                            // 取消超时
                             f.cancelTimeout();
                             f.putResponse(commandFactory.createSendFailedResponse(
                                 conn.getRemoteAddress(), cf.cause()));

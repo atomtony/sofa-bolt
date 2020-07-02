@@ -47,9 +47,11 @@ public class DefaultClientConnectionManager extends DefaultConnectionManager imp
     @Override
     public void startup() throws LifeCycleException {
         super.startup();
-
+        // 客户端设置连接连接管理器
         this.connectionEventHandler.setConnectionManager(this);
+        // 设置连接监听器
         this.connectionEventHandler.setConnectionEventListener(connectionEventListener);
+        // 连接工厂初始化,创建客户端启动器，设置编解码、idle、rpcHandler等工作
         this.connectionFactory.init(connectionEventHandler);
     }
 

@@ -120,36 +120,47 @@ public class RpcClient extends AbstractBoltClient {
             this.addressParser = new RpcAddressParser();
         }
 
+        // 获取连接选择策略，默认未设置
         ConnectionSelectStrategy connectionSelectStrategy = option(BoltGenericOption.CONNECTION_SELECT_STRATEGY);
         if (connectionSelectStrategy == null) {
+            // 创建连接选择策略
             connectionSelectStrategy = new RandomSelectStrategy(switches());
         }
+        // 创建客户端连接管理器，传入参数有连接选择策略器，连接工厂，连接事件Handler，连接监听器，开关配置
         this.connectionManager = new DefaultClientConnectionManager(connectionSelectStrategy,
             new RpcConnectionFactory(userProcessors, this), connectionEventHandler,
             connectionEventListener, switches());
+        // 设置地址解析器
         this.connectionManager.setAddressParser(this.addressParser);
+        // 启动连接管理
         this.connectionManager.startup();
         this.rpcRemoting = new RpcClientRemoting(new RpcCommandFactory(), this.addressParser,
             this.connectionManager);
+        // 启动任务扫描，超时任务移除等
         this.taskScanner.add(this.connectionManager);
         this.taskScanner.startup();
-
+        // 连接开关，默认false
         if (switches().isOn(GlobalSwitch.CONN_MONITOR_SWITCH)) {
             if (monitorStrategy == null) {
+                // 创建默认连接监控，主要对在线和离线连接监控汇总等
                 connectionMonitor = new DefaultConnectionMonitor(new ScheduledDisconnectStrategy(),
                     this.connectionManager);
             } else {
+                // 创建默认连接监控，主要对在线和离线连接监控汇总等
                 connectionMonitor = new DefaultConnectionMonitor(monitorStrategy,
                     this.connectionManager);
             }
+            // 启动连接监控，启动定时监控
             connectionMonitor.startup();
             logger.warn("Switch on connection monitor");
         }
         // 是否重连，默认为false，是一个客户端
         if (switches().isOn(GlobalSwitch.CONN_RECONNECT_SWITCH)) {
+            // 重连管理器，
             reconnectManager = new ReconnectManager(connectionManager);
+            // 启动管理器线程，从阻塞重连任务队列中获取，执行重连任务
             reconnectManager.startup();
-
+            // 设置重连管理器，监听到连接断开，向重连管理器添加重连任务
             connectionEventHandler.setReconnector(reconnectManager);
             logger.warn("Switch on reconnect manager");
         }

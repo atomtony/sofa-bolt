@@ -44,6 +44,7 @@ public class HeartbeatHandler extends ChannelDuplexHandler {
         if (evt instanceof IdleStateEvent) {
             ProtocolCode protocolCode = ctx.channel().attr(Connection.PROTOCOL).get();
             Protocol protocol = ProtocolManager.getProtocol(protocolCode);
+            // 空闲超时，发送心跳
             protocol.getHeartbeatTrigger().heartbeatTriggered(ctx);
         } else {
             super.userEventTriggered(ctx, evt);

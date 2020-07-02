@@ -27,10 +27,12 @@ import com.alipay.remoting.rpc.protocol.UserProcessor;
  *
  * @author chengyi (mark.lx@antfin.com) 2018-06-20 15:32
  */
+// 当前仅用在客户端，连接工厂
 public class RpcConnectionFactory extends DefaultConnectionFactory {
 
     public RpcConnectionFactory(ConcurrentHashMap<String, UserProcessor<?>> userProcessors,
                                 ConfigurableInstance configInstance) {
+        // 创建一级指令编解码器，心跳Handler
         super(new RpcCodec(), new HeartbeatHandler(), new RpcHandler(userProcessors),
             configInstance);
     }

@@ -59,6 +59,7 @@ public class RpcClientRemoting extends RpcRemoting {
     public Object invokeSync(Url url, Object request, InvokeContext invokeContext, int timeoutMillis)
                                                                                                      throws RemotingException,
                                                                                                      InterruptedException {
+        // 创建连接
         final Connection conn = getConnectionAndInitInvokeContext(url, invokeContext);
         this.connectionManager.check(conn);
         return this.invokeSync(conn, request, invokeContext, timeoutMillis);

@@ -452,6 +452,7 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
     @Override
     public Connection getAndCreateIfAbsent(Url url) throws InterruptedException, RemotingException {
         // get and create a connection pool with initialized connections.
+        // 获取连接池，传入IP:PORT和连接池回调
         ConnectionPool pool = this.getConnectionPoolAndCreateIfAbsent(url.getUniqueKey(),
             new ConnectionPoolCall(url));
         if (null != pool) {
@@ -562,7 +563,7 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
      * @throws RemotingException if there is no way to get an available {@link ConnectionPool}
      * @throws InterruptedException
      */
-    private ConnectionPool getConnectionPoolAndCreateIfAbsent(String poolKey,
+    private ConnectionPool getConnectionPoolAndCreateIfAbsent(String poolKey,//IP:PORT
                                                               Callable<ConnectionPool> callable)
                                                                                                 throws RemotingException,
                                                                                                 InterruptedException {
@@ -575,24 +576,31 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
         int timesOfInterrupt = 0;
 
         for (int i = 0; (i < retry) && (pool == null); ++i) {
+            // 根据IP:PORT获取连接任务
             initialTask = this.connTasks.get(poolKey);
             if (null == initialTask) {
+                // 未找到则创建连接
                 RunStateRecordedFutureTask<ConnectionPool> newTask = new RunStateRecordedFutureTask<ConnectionPool>(
                     callable);
                 initialTask = this.connTasks.putIfAbsent(poolKey, newTask);
                 if (null == initialTask) {
                     initialTask = newTask;
+                    // 同步执行
+                    // 首先执行Task中的run()方法，run()方法中又调用callable.call()方法。
                     initialTask.run();
                 }
             }
 
             try {
+                // 获取连接池，可以多次获取
                 pool = initialTask.get();
                 if (null == pool) {
+                    // 失败重试，直到小于设置的重试次数
                     if (i + 1 < retry) {
                         timesOfResultNull++;
                         continue;
                     }
+                    // 移除缓存
                     this.connTasks.remove(poolKey);
                     String errMsg = "Get future task result null for poolKey [" + poolKey
                                     + "] after [" + (timesOfResultNull + 1) + "] times try.";
@@ -713,6 +721,7 @@ public class DefaultConnectionManager extends AbstractLifeCycle implements Conne
 
         @Override
         public ConnectionPool call() throws Exception {
+            // 创建连接池
             final ConnectionPool pool = new ConnectionPool(connectionSelectStrategy);
             if (whetherInitConnection) {
                 try {
