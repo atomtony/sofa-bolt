@@ -118,6 +118,7 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
 
         @Override
         public void run() {
+            // 中断前设置类启动状态为false
             while (isStarted()) {
                 long start = -1;
                 ReconnectTask task = null;
@@ -132,6 +133,7 @@ public class ReconnectManager extends AbstractLifeCycle implements Reconnector {
                         // ignore
                     }
 
+                    // 中断时task==null
                     if (task == null) {
                         continue;
                     }
